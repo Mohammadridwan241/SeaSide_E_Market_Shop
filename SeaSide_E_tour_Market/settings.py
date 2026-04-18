@@ -27,7 +27,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-*0*zy86-gij)=(!9v)gj$!9u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*git'])
 
 # Application definition
 
