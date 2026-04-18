@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful | SeaSide-E-market{% endblock %}
+
+{% block content %}
+<div class="card text-center py-5 my-5">
+    <div class="card-body">
+        <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
+        {% if order.payment_method == 'cod' %}
+        <h1 class="mb-3">Order Confirmed!</h1>
+        <p class="lead mb-4">Your order #{{ order.id }} has been placed with Cash on Delivery.</p>
+        <p class="mb-4">A confirmation message has been sent to {{ order.phone }}.</p>
+        <p class="mb-5">Payment method: <strong>{{ order.get_payment_method_display }}</strong></p>
+        {% else %}
+        <h1 class="mb-3">Payment Successful!</h1>
+        <p class="lead mb-4">Thank you for your purchase. Your order #{{ order.id }} has been confirmed.</p>
+        <p class="mb-4">A confirmation message has been sent to {{ order.phone }}.</p>
+        <p class="mb-5">Your transaction ID: <strong>{{ order.transaction_id }}</strong></p>
+        {% endif %}
+        <div class="d-grid gap-2 col-lg-6 mx-auto">
+            {% comment %} <a href="{% url 'profile' %}" class="btn btn-primary">View Your Orders</a> {% endcomment %}
+            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

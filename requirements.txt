@@ -1,0 +1,7 @@
+Django==5.2.7
+django-allauth
+django-environ
+Pillow
+requests
+PyJWT
+cryptography

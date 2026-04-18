@@ -1,0 +1,533 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout | SeaSide-E-market{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-container {
+        padding-bottom: 3rem;
+    }
+
+    .checkout-header {
+        margin-bottom: 2rem;
+    }
+
+    .checkout-title {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .checkout-steps {
+        display: flex;
+        margin-bottom: 1.5rem;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-right: 2rem;
+    }
+
+    .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        margin-right: 0.5rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .step.active {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .step.active .step-number {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .step.completed .step-number {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .checkout-card {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .checkout-card .card-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .checkout-card .card-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    .checkout-card .card-header i {
+        margin-right: 0.5rem;
+        color: var(--primary-color);
+    }
+
+    .checkout-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.15);
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background-image: none;
+    }
+
+    .invalid-feedback {
+        font-size: 0.85rem;
+    }
+
+    .payment-method {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+
+    .payment-method:hover {
+        border-color: var(--primary-color);
+    }
+
+    .payment-method-label {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    .payment-method-icon {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        color: var(--primary-color);
+    }
+
+    .payment-method-description {
+        margin-top: 0.5rem;
+        margin-left: 2.5rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .summary-card {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        position: sticky;
+        top: 20px;
+    }
+
+    .summary-card .card-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .summary-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-item:last-of-type {
+        border-bottom: none;
+    }
+
+    .summary-item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .summary-item-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        gap: 1rem;
+    }
+
+    .summary-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .summary-row.total {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .shipping-options {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-top: 0.5rem;
+    }
+
+    .checkout-btn {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border: none;
+        border-radius: 50px;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+    }
+
+    .checkout-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-color) 100%);
+    }
+
+    .back-btn {
+        border-radius: 50px;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1 class="checkout-title">Checkout</h1>
+        <div class="checkout-steps">
+            <div class="step completed">
+                <div class="step-number">
+                    <i class="fas fa-check"></i>
+                </div>
+                <span>Cart</span>
+            </div>
+            <div class="step active">
+                <div class="step-number">2</div>
+                <span>Shipping & Payment</span>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <span>Confirmation</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="checkout-card card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt"></i> Shipping Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'checkout' %}" id="checkout-form">
+                        {% csrf_token %}
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ form.first_name.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                                           id="{{ form.first_name.id_for_label }}" name="{{ form.first_name.html_name }}"
+                                           value="{{ form.first_name.value|default:'' }}" required>
+                                </div>
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback">{{ form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ form.last_name.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                                           id="{{ form.last_name.id_for_label }}" name="{{ form.last_name.html_name }}"
+                                           value="{{ form.last_name.value|default:'' }}" required>
+                                </div>
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback">{{ form.last_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ form.email.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                                           id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}"
+                                           value="{{ form.email.value|default:'' }}" required>
+                                </div>
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ form.phone.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
+                                           id="{{ form.phone.id_for_label }}" name="{{ form.phone.html_name }}"
+                                           value="{{ form.phone.value|default:'' }}" required>
+                                </div>
+                                {% if form.phone.errors %}
+                                <div class="invalid-feedback">{{ form.phone.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">
+                                    We'll send your order confirmation and updates to this phone number.
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                                {{ form.address.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-home"></i></span>
+                                    <input type="text" class="form-control {% if form.address.errors %}is-invalid{% endif %}"
+                                           id="{{ form.address.id_for_label }}" name="{{ form.address.html_name }}"
+                                           value="{{ form.address.value|default:'' }}" required>
+                                </div>
+                                {% if form.address.errors %}
+                                <div class="invalid-feedback">{{ form.address.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                                {{ form.city.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                    <select class="form-control {% if form.city.errors %}is-invalid{% endif %}"
+                                            id="{{ form.city.id_for_label }}"
+                                            name="{{ form.city.html_name }}"
+                                            required>
+                                        {% for value, label in form.fields.city.choices %}
+                                        <option value="{{ value }}" {% if form.city.value == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% if form.city.errors %}
+                                <div class="invalid-feedback">{{ form.city.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code</label>
+                                {{ form.postal_code.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                                    <input type="text" class="form-control {% if form.postal_code.errors %}is-invalid{% endif %}"
+                                           id="{{ form.postal_code.id_for_label }}" name="{{ form.postal_code.html_name }}"
+                                           value="{{ form.postal_code.value|default:'' }}" required>
+                                </div>
+                                {% if form.postal_code.errors %}
+                                <div class="invalid-feedback">{{ form.postal_code.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.note.id_for_label }}" class="form-label">Order Notes (optional)</label>
+                                {{ form.note.errors }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
+                                    <textarea class="form-control {% if form.note.errors %}is-invalid{% endif %}"
+                                              id="{{ form.note.id_for_label }}" name="{{ form.note.html_name }}" rows="3">{{ form.note.value|default:'' }}</textarea>
+                                </div>
+                                {% if form.note.errors %}
+                                <div class="invalid-feedback">{{ form.note.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Add any special instructions or delivery notes here.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="checkout-card card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-money-bill-wave"></i> Payment Method
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="payment-method">
+                        <div class="payment-method-label">
+                            <i class="fas fa-money-bill-wave payment-method-icon"></i> Cash on Delivery
+                        </div>
+                        <div class="payment-method-description">
+                            Place your order now and pay in cash when the product is delivered to your address.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3 mt-4">
+                        <button type="submit" form="checkout-form" class="btn checkout-btn">
+                            <i class="fas fa-check-circle me-2"></i> Place Order
+                        </button>
+                        <a href="{% url 'cart_detail' %}" class="btn btn-outline-secondary back-btn">
+                            <i class="fas fa-arrow-left me-2"></i> Back to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="summary-card card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-basket me-2"></i> Order Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart.items.all %}
+                    <div class="summary-item d-flex">
+                        <div class="flex-shrink-0">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                                 class="summary-item-image">
+                            {% else %}
+                            <div class="bg-light text-center summary-item-image d-flex justify-content-center align-items-center">
+                                <i class="fas fa-image fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="summary-item-title">{{ item.product.name }}</h6>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">{{ item.quantity }} x ৳{{ item.product.price }}</span>
+                                <span class="fw-bold">৳{{ item.get_cost }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <hr>
+
+                    <div class="py-3">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span>৳{{ cart.get_total_price }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Shipping fee:</span>
+                            <span id="checkout-shipping-fee">
+                                {% if shipping_fee is not None %}
+                                ৳{{ shipping_fee }}
+                                {% else %}
+                                Select city
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="shipping-options">Inside Chattogram: ৳{{ inside_chattogram_fee }} | Outside Chattogram: ৳{{ outside_chattogram_fee }}</div>
+                        <hr>
+                        <div class="summary-row total">
+                            <span>Total:</span>
+                            <span id="checkout-total"
+                                  data-subtotal="{{ cart.get_total_price }}"
+                                  data-inside-fee="{{ inside_chattogram_fee }}"
+                                  data-outside-fee="{{ outside_chattogram_fee }}">৳{{ order_total }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const cityInput = document.getElementById("{{ form.city.id_for_label }}");
+        const shippingFeeEl = document.getElementById("checkout-shipping-fee");
+        const totalEl = document.getElementById("checkout-total");
+
+        if (!cityInput || !shippingFeeEl || !totalEl) {
+            return;
+        }
+
+        const subtotal = parseFloat(totalEl.dataset.subtotal || "0");
+        const insideFee = parseFloat(totalEl.dataset.insideFee || "80");
+        const outsideFee = parseFloat(totalEl.dataset.outsideFee || "120");
+
+        function formatAmount(amount) {
+            return "৳" + amount.toFixed(2);
+        }
+
+        function getShippingFee(city) {
+            if (city === "Chattogram") {
+                return insideFee;
+            }
+            if (city === "Outside Chattogram") {
+                return outsideFee;
+            }
+            return null;
+        }
+
+        function updateSummary() {
+            const city = cityInput.value;
+            const shippingFee = getShippingFee(city);
+
+            if (shippingFee === null) {
+                shippingFeeEl.textContent = "Select city";
+                totalEl.textContent = formatAmount(subtotal);
+                return;
+            }
+
+            shippingFeeEl.textContent = formatAmount(shippingFee);
+            totalEl.textContent = formatAmount(subtotal + shippingFee);
+        }
+
+        cityInput.addEventListener("change", updateSummary);
+        updateSummary();
+    })();
+</script>
+{% endblock %}
