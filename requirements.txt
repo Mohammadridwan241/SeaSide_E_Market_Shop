@@ -1,4 +1,4 @@
-Django==5.2.7
+Django
 django-allauth
 django-environ
 Pillow
