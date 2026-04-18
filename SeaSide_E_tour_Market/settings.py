@@ -27,7 +27,26 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-*0*zy86-gij)=(!9v)gj$!9u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*','https://seaside-e-market-shop.onrender.com'])
+def normalize_host(host):
+    normalized = (host or '').strip()
+    if '://' in normalized:
+        normalized = normalized.split('://', 1)[1]
+    return normalized.rstrip('/')
+
+
+default_allowed_hosts = [
+    '127.0.0.1',
+    'localhost',
+    'seaside-e-market-shop.onrender.com',
+]
+allowed_hosts = [normalize_host(host) for host in env.list('ALLOWED_HOSTS', default=default_allowed_hosts)]
+render_hostname = normalize_host(env('RENDER_EXTERNAL_HOSTNAME', default=''))
+
+if render_hostname:
+    allowed_hosts.append(render_hostname)
+
+ALLOWED_HOSTS = [host for host in dict.fromkeys(allowed_hosts) if host]
+CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in ALLOWED_HOSTS if host not in {'127.0.0.1', 'localhost'}]
 
 # Application definition
 
