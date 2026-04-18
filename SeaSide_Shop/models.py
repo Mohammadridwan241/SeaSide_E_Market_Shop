@@ -1,8 +1,11 @@
+from datetime import timedelta
 from decimal import Decimal
+import random
 
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 
 INSIDE_CHATTOGRAM_SHIPPING_FEE = Decimal('80.00')
@@ -136,4 +139,24 @@ class OrderItem(models.Model):
     
     def get_cost(self):
         return self.quantity*self.price  # 20
-        
+
+
+class PasswordResetCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_codes')
+    code = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.user.username} - {self.code}"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = f"{random.randint(0, 999999):06d}"
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at

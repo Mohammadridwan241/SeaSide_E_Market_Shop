@@ -23,7 +23,7 @@
                     </div>
 
                     <div class="mb-3 text-end">
-                        <a href="{% url 'account_reset_password' %}" class="text-decoration-none">Forgot Password?</a>
+                        <a href="{% url 'password_reset_request' %}" class="text-decoration-none">Forgot Password?</a>
                     </div>
                     
                     <div class="d-grid gap-2">
@@ -31,13 +31,6 @@
                     </div>
                 </form>
 
-                <div class="mt-4">
-                    <p class="mb-2 fw-semibold">Click Forgot password?</p>
-                    <p class="mb-1 text-muted">Enter your email or phone number.</p>
-                    <p class="mb-1 text-muted">Check your email or SMS for the reset code or link.</p>
-                    <p class="mb-0 text-muted">Create a new strong password you have not used before.</p>
-                </div>
-                
                 <div class="text-center mt-4">
                     <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Sign up</a></p>
                 </div>

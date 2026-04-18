@@ -1,7 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import RegistrationForm, RatingForm, CheckoutForm
+from django.core.mail import send_mail
+from django.utils import timezone
+
+from .forms import (
+    RegistrationForm,
+    RatingForm,
+    CheckoutForm,
+    PasswordResetRequestForm,
+    PasswordResetCodeForm,
+)
 from .models import (
     Category,
     Product,
@@ -10,6 +21,7 @@ from .models import (
     Rating,
     Order,
     OrderItem,
+    PasswordResetCode,
     INSIDE_CHATTOGRAM_SHIPPING_FEE,
     OUTSIDE_CHATTOGRAM_SHIPPING_FEE,
     get_shipping_fee_for_city,
@@ -51,6 +63,84 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+def password_reset_request_view(request):
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(email__iexact=email)
+            except User.DoesNotExist:
+                messages.warning(request, 'No account found with that email address.')
+            else:
+                PasswordResetCode.objects.filter(user=user, is_used=False).update(is_used=True)
+                reset_code = PasswordResetCode.objects.create(user=user)
+                try:
+                    send_mail(
+                        subject='Your SeaSide-E-market password reset code',
+                        message=(
+                            f'Hello {user.get_full_name() or user.username},\n\n'
+                            f'Your password reset code is: {reset_code.code}\n'
+                            'This code will expire in 10 minutes.\n\n'
+                            'If you did not request this reset, please ignore this email.'
+                        ),
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+                except Exception:
+                    reset_code.is_used = True
+                    reset_code.save(update_fields=['is_used'])
+                    messages.error(request, 'We could not send the reset code right now. Please try again shortly.')
+                else:
+                    request.session['password_reset_user_id'] = user.id
+                    messages.success(request, 'A reset code has been sent to your email.')
+                    return redirect('password_reset_verify')
+    else:
+        form = PasswordResetRequestForm()
+
+    return render(request, 'SeaSide_Shop/password_reset_request.html', {'form': form})
+
+
+def password_reset_verify_view(request):
+    user_id = request.session.get('password_reset_user_id')
+    if not user_id:
+        messages.warning(request, 'Please enter your email first.')
+        return redirect('password_reset_request')
+
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == 'POST':
+        form = PasswordResetCodeForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            reset_code = PasswordResetCode.objects.filter(
+                user=user,
+                code=code,
+                is_used=False,
+                expires_at__gte=timezone.now(),
+            ).order_by('-created_at').first()
+
+            if not reset_code:
+                messages.error(request, 'Invalid or expired reset code.')
+            else:
+                user.set_password(form.cleaned_data['new_password1'])
+                user.save(update_fields=['password'])
+                reset_code.is_used = True
+                reset_code.save(update_fields=['is_used'])
+                PasswordResetCode.objects.filter(user=user, is_used=False).update(is_used=True)
+                request.session.pop('password_reset_user_id', None)
+                messages.success(request, 'Your password has been reset successfully.')
+                return redirect('login')
+    else:
+        form = PasswordResetCodeForm()
+
+    return render(request, 'SeaSide_Shop/password_reset_verify.html', {
+        'form': form,
+        'reset_email': user.email,
+    })
 
 
 # homepage

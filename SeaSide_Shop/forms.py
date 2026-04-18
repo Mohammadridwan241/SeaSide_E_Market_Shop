@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User 
+from django.contrib.auth.password_validation import validate_password
 
 from .models import Rating, Order
 
@@ -42,3 +43,36 @@ class CheckoutForm(forms.ModelForm):
         widgets = {
             'note': forms.Textarea(attrs={'rows': 3, 'required': False}),
         }
+
+
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email address'})
+    )
+
+
+class PasswordResetCodeForm(forms.Form):
+    code = forms.CharField(
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter 6-digit code'})
+    )
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter new password'})
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm new password'})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('new_password1')
+        password2 = cleaned_data.get('new_password2')
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError('Passwords do not match.')
+
+        if password1:
+            validate_password(password1)
+
+        return cleaned_data
