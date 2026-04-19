@@ -9,12 +9,12 @@
         {% if order.payment_method == 'cod' %}
         <h1 class="mb-3">Order Confirmed!</h1>
         <p class="lead mb-4">Your order #{{ order.id }} has been placed with Cash on Delivery.</p>
-        <p class="mb-4">A confirmation message has been sent to {{ order.phone }}.</p>
+        <p class="mb-4">A confirmation message has been sent to {{ order.email }}.</p>
         <p class="mb-5">Payment method: <strong>{{ order.get_payment_method_display }}</strong></p>
         {% else %}
         <h1 class="mb-3">Payment Successful!</h1>
         <p class="lead mb-4">Thank you for your purchase. Your order #{{ order.id }} has been confirmed and paid online.</p>
-        <p class="mb-4">A confirmation message has been sent to {{ order.phone }}.</p>
+        <p class="mb-4">A confirmation message has been sent to {{ order.email }}.</p>
         <p class="mb-2">Payment method: <strong>{{ order.get_payment_method_display }}</strong></p>
         <p class="mb-5">Your transaction ID: <strong>{{ order.transaction_id }}</strong></p>
         {% endif %}
