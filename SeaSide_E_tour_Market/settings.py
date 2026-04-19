@@ -47,6 +47,7 @@ if render_hostname:
 
 ALLOWED_HOSTS = [host for host in dict.fromkeys(allowed_hosts) if host]
 CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in ALLOWED_HOSTS if host not in {'127.0.0.1', 'localhost'}]
+APP_BASE_URL = env('APP_BASE_URL', default=(f'https://{render_hostname}' if render_hostname else ''))
 
 # Application definition
 
@@ -76,6 +77,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 ROOT_URLCONF = 'SeaSide_E_tour_Market.urls'
 

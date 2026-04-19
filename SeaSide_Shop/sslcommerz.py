@@ -42,6 +42,14 @@ def _ensure_credentials():
         )
 
 
+def _build_callback_url(request, route_name):
+    path = reverse(route_name)
+    base_url = (getattr(settings, 'APP_BASE_URL', '') or '').strip().rstrip('/')
+    if base_url:
+        return f'{base_url}{path}'
+    return request.build_absolute_uri(path)
+
+
 def create_payment_session(request, order):
     _ensure_credentials()
     urls = _get_base_urls()
@@ -53,10 +61,10 @@ def create_payment_session(request, order):
         'total_amount': f'{order.get_total_cost():.2f}',
         'currency': 'BDT',
         'tran_id': order.transaction_id,
-        'success_url': request.build_absolute_uri(reverse('sslcommerz_success')),
-        'fail_url': request.build_absolute_uri(reverse('sslcommerz_fail')),
-        'cancel_url': request.build_absolute_uri(reverse('sslcommerz_cancel')),
-        'ipn_url': request.build_absolute_uri(reverse('sslcommerz_ipn')),
+        'success_url': _build_callback_url(request, 'sslcommerz_success'),
+        'fail_url': _build_callback_url(request, 'sslcommerz_fail'),
+        'cancel_url': _build_callback_url(request, 'sslcommerz_cancel'),
+        'ipn_url': _build_callback_url(request, 'sslcommerz_ipn'),
         'shipping_method': 'Courier',
         'product_name': f'Order #{order.id}',
         'product_category': 'Ecommerce',
