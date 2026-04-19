@@ -15,10 +15,10 @@ class ProductAdmin(admin.ModelAdmin):
     
 @admin.register(models.Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'payment_method', 'product_fee', 'shipping_fee', 'status', 'paid', 'created_at']
-    list_filter = ['status', 'paid', 'payment_method', 'created_at']
+    list_display = ['id', 'user', 'payment_method', 'payment_status', 'product_fee', 'shipping_fee', 'status', 'paid', 'created_at']
+    list_filter = ['status', 'paid', 'payment_method', 'payment_status', 'created_at']
     search_fields = ['id', 'user__username', 'email', 'phone']
-    list_editable = ['status', 'paid']
+    list_editable = ['status', 'paid', 'payment_status']
 
     @admin.display(description='Product Fee')
     def product_fee(self, obj):

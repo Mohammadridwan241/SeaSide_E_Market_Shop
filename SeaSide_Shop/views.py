@@ -4,7 +4,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.db import transaction
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import (
     RegistrationForm,
@@ -28,7 +30,138 @@ from .models import (
 )
 from django.db.models import Q, Min, Max, Avg
 from django.contrib.auth.decorators import login_required
-from .sslcommerz import send_order_confirmation_email
+from .sslcommerz import (
+    SSLCommerzError,
+    create_payment_session,
+    send_order_confirmation_email,
+    validate_payment,
+)
+
+
+def _build_transaction_id(order):
+    return f'SSLCZ-ORDER-{order.id}-{int(timezone.now().timestamp())}'
+
+
+def _reduce_order_stock(order):
+    if order.stock_reduced:
+        return
+
+    for item in order.order_items.select_related('product'):
+        product = item.product
+        product.stock = max(product.stock - item.quantity, 0)
+        product.save(update_fields=['stock'])
+
+    order.stock_reduced = True
+    order.save(update_fields=['stock_reduced'])
+
+
+def _restore_order_stock(order):
+    if not order.stock_reduced:
+        return
+
+    for item in order.order_items.select_related('product'):
+        product = item.product
+        product.stock += item.quantity
+        product.save(update_fields=['stock'])
+
+    order.stock_reduced = False
+    order.save(update_fields=['stock_reduced'])
+
+
+@transaction.atomic
+def _create_order_from_cart(form, user, cart, payment_method):
+    order = form.save(commit=False)
+    order.user = user
+    order.status = 'pending'
+    order.payment_method = payment_method
+    order.shipping_fee = get_shipping_fee_for_city(form.cleaned_data['city'])
+    order.transaction_id = ''
+    order.sslcommerz_session_key = ''
+    order.validation_id = ''
+    order.bank_transaction_id = ''
+
+    if payment_method == 'cod':
+        order.payment_status = 'cod'
+        order.paid = False
+    else:
+        order.payment_status = 'pending'
+        order.paid = False
+
+    order.save()
+
+    for item in cart.items.select_related('product'):
+        OrderItem.objects.create(
+            order=order,
+            product=item.product,
+            price=item.product.price,
+            quantity=item.quantity,
+        )
+
+    return order
+
+
+@transaction.atomic
+def _finalize_cod_order(order, cart):
+    order.transaction_id = 'COD'
+    order.save(update_fields=['transaction_id'])
+    _reduce_order_stock(order)
+    cart.items.all().delete()
+    send_order_confirmation_email(order)
+
+
+@transaction.atomic
+def _mark_order_payment_failed(order):
+    if order.payment_status == 'paid':
+        return
+
+    order.payment_status = 'failed'
+    order.status = 'failed'
+    order.paid = False
+    order.save(update_fields=['payment_status', 'status', 'paid'])
+
+
+@transaction.atomic
+def _mark_order_payment_canceled(order):
+    if order.payment_status == 'paid':
+        return
+
+    order.payment_status = 'canceled'
+    order.status = 'canceled'
+    order.paid = False
+    order.save(update_fields=['payment_status', 'status', 'paid'])
+
+
+@transaction.atomic
+def _mark_order_payment_success(order, validation_data=None, clear_cart=False):
+    was_paid = order.payment_status == 'paid'
+
+    order.payment_status = 'paid'
+    order.status = 'confirm'
+    order.paid = True
+
+    if validation_data:
+        order.validation_id = validation_data.get('val_id', '') or order.validation_id
+        order.bank_transaction_id = validation_data.get('bank_tran_id', '') or order.bank_transaction_id
+        order.transaction_id = validation_data.get('tran_id', '') or order.transaction_id
+        order.sslcommerz_session_key = validation_data.get('sessionkey', '') or order.sslcommerz_session_key
+
+    order.save(update_fields=[
+        'payment_status',
+        'status',
+        'paid',
+        'validation_id',
+        'bank_transaction_id',
+        'transaction_id',
+        'sslcommerz_session_key',
+    ])
+
+    _reduce_order_stock(order)
+
+    if clear_cart:
+        CartItem.objects.filter(cart__user=order.user).delete()
+
+    if not was_paid:
+        send_order_confirmation_email(order)
 # Create your views here.
 
 # Manual User Authentication
@@ -370,46 +503,46 @@ def checkout(request):
     
     # Checkout form ta fill up korbe
     shipping_fee = None
+    selected_payment_method = 'cod'
     if request.method == 'POST':
         form = CheckoutForm(request.POST)
         selected_city = request.POST.get('city', '').strip()
+        selected_payment_method = request.POST.get('payment_method', 'cod')
         if selected_city:
             shipping_fee = get_shipping_fee_for_city(selected_city)
         if form.is_valid():
-            order = form.save(commit=False) # form object create hobe kintu data database e jabe na
-            order.user = request.user 
-            order.status = 'pending'
-            order.payment_method = 'cod'
-            order.transaction_id = ''
-            order.shipping_fee = get_shipping_fee_for_city(form.cleaned_data['city'])
-            order.save() # order kora hoye geche
+            selected_payment_method = form.cleaned_data['payment_method']
+            order = _create_order_from_cart(form, request.user, cart, selected_payment_method)
 
-            for item in cart.items.all():
-                OrderItem.objects.create(
-                    order = order,
-                    product = item.product, # cartitem e ekhn order item
-                    price = item.product.price, # product er main price e order item er main price
-                    quantity = item.quantity # cart item er quantity e hocche order item er quantity
-                )
-            order.transaction_id = 'COD'
+            if selected_payment_method == 'cod':
+                _finalize_cod_order(order, cart)
+                messages.success(request, 'Order placed with Cash on Delivery')
+                return render(request, 'SeaSide_Shop/payment_success.html', {'order': order})
+
+            order.transaction_id = _build_transaction_id(order)
             order.save(update_fields=['transaction_id'])
 
-            for item in order.order_items.all():
-                product = item.product
-                product.stock = max(product.stock - item.quantity, 0)
-                product.save(update_fields=['stock'])
-
-            cart.items.all().delete()
-            send_order_confirmation_email(order)
-            messages.success(request, 'Order placed with Cash on Delivery')
-            return render(request, 'SeaSide_Shop/payment_success.html', {'order': order})
+            try:
+                payment_data = create_payment_session(request, order)
+            except SSLCommerzError as exc:
+                _mark_order_payment_failed(order)
+                messages.error(request, str(exc))
+            else:
+                order.sslcommerz_session_key = payment_data.get('sessionkey', '')
+                order.save(update_fields=['sslcommerz_session_key'])
+                return redirect(payment_data['GatewayPageURL'])
     else:
-        form = CheckoutForm()
+        form = CheckoutForm(initial={'payment_method': 'cod'})
 
     if shipping_fee is None and form.is_bound:
         selected_city = form.data.get('city', '').strip()
         if selected_city:
             shipping_fee = get_shipping_fee_for_city(selected_city)
+
+    if form.is_bound:
+        selected_payment_method = form.data.get('payment_method', 'cod')
+    else:
+        selected_payment_method = form.initial.get('payment_method', 'cod')
 
     order_total = cart.get_total_price() + (shipping_fee or 0)
 
@@ -420,19 +553,81 @@ def checkout(request):
         'order_total': order_total,
         'inside_chattogram_fee': INSIDE_CHATTOGRAM_SHIPPING_FEE,
         'outside_chattogram_fee': OUTSIDE_CHATTOGRAM_SHIPPING_FEE,
+        'selected_payment_method': selected_payment_method,
     })
+
+
+def _get_order_from_gateway_request(request):
+    tran_id = request.POST.get('tran_id') or request.GET.get('tran_id')
+    return get_object_or_404(Order, transaction_id=tran_id)
+
+
+@csrf_exempt
+def sslcommerz_success(request):
+    order = _get_order_from_gateway_request(request)
+    val_id = request.POST.get('val_id') or request.GET.get('val_id')
+
+    if order.payment_status == 'paid':
+        messages.success(request, 'Payment Successful')
+        return render(request, 'SeaSide_Shop/payment_success.html', {'order': order})
+
+    try:
+        validation_data = validate_payment(val_id, order.get_total_cost())
+    except SSLCommerzError:
+        _mark_order_payment_failed(order)
+        messages.error(request, 'We could not validate your payment. Please contact support.')
+        return render(request, 'SeaSide_Shop/payment_failed.html', {'order': order})
+
+    _mark_order_payment_success(order, validation_data=validation_data, clear_cart=True)
+    messages.success(request, 'Payment Successful')
+    return render(request, 'SeaSide_Shop/payment_success.html', {'order': order})
+
+
+@csrf_exempt
+def sslcommerz_fail(request):
+    order = _get_order_from_gateway_request(request)
+    _mark_order_payment_failed(order)
+    messages.error(request, 'Payment failed. Please try again.')
+    return render(request, 'SeaSide_Shop/payment_failed.html', {'order': order})
+
+
+@csrf_exempt
+def sslcommerz_cancel(request):
+    order = _get_order_from_gateway_request(request)
+    _mark_order_payment_canceled(order)
+    messages.warning(request, 'Payment was cancelled.')
+    return render(request, 'SeaSide_Shop/payment_cancelled.html', {'order': order})
+
+
+@csrf_exempt
+def sslcommerz_ipn(request):
+    order = _get_order_from_gateway_request(request)
+    val_id = request.POST.get('val_id')
+
+    if request.method != 'POST':
+        return render(request, 'SeaSide_Shop/payment_ipn.html', {'message': 'Invalid IPN request.'}, status=400)
+
+    if order.payment_status == 'paid':
+        return render(request, 'SeaSide_Shop/payment_ipn.html', {'message': 'Payment already processed.'})
+
+    try:
+        validation_data = validate_payment(val_id, order.get_total_cost())
+    except SSLCommerzError:
+        _mark_order_payment_failed(order)
+        return render(request, 'SeaSide_Shop/payment_ipn.html', {'message': 'Payment validation failed.'}, status=400)
+
+    _mark_order_payment_success(order, validation_data=validation_data, clear_cart=True)
+    return render(request, 'SeaSide_Shop/payment_ipn.html', {'message': 'IPN processed successfully.'})
 
 
 @login_required
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     if request.method == 'POST' and order.status == 'pending':
-        for item in order.order_items.select_related('product'):
-            product = item.product
-            product.stock += item.quantity
-            product.save(update_fields=['stock'])
+        _restore_order_stock(order)
         order.status = 'canceled'
-        order.save(update_fields=['status', 'paid'])
+        order.payment_status = 'canceled'
+        order.save(update_fields=['status', 'payment_status', 'paid'])
         messages.success(request, 'Order canceled successfully')
     elif order.status != 'pending':
         messages.warning(request, 'Only pending orders can be canceled')
@@ -447,7 +642,10 @@ def profile(request):
     orders = Order.objects.filter(user = request.user)
     completed_orders = orders.filter(status = 'delivered')
     completed_orders_count = completed_orders.count()
-    total_spent = sum(order.get_total_cost() for order in orders.exclude(status='canceled'))
+    total_spent = sum(
+        order.get_total_cost()
+        for order in orders.exclude(status__in=['canceled', 'failed']).exclude(payment_status__in=['canceled', 'failed'])
+    )
     order_history_active = (tab == 'orders') # true or false return korbe
     
     return render(request, 'SeaSide_Shop/profile.html', {

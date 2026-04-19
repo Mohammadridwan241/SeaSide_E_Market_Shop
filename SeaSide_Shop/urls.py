@@ -25,6 +25,10 @@ urlpatterns = [
     
     # checkout related urls
     path('checkout/', views.checkout, name="checkout"),
+    path('payment/sslcommerz/success/', views.sslcommerz_success, name='sslcommerz_success'),
+    path('payment/sslcommerz/fail/', views.sslcommerz_fail, name='sslcommerz_fail'),
+    path('payment/sslcommerz/cancel/', views.sslcommerz_cancel, name='sslcommerz_cancel'),
+    path('payment/sslcommerz/ipn/', views.sslcommerz_ipn, name='sslcommerz_ipn'),
     path('orders/<int:order_id>/cancel/', views.cancel_order, name="cancel_order"),
     
     # profile

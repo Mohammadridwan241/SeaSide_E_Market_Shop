@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Failed | SeaSide-E-market{% endblock %}
+
+{% block content %}
+<div class="card text-center py-5 my-5">
+    <div class="card-body">
+        <i class="fas fa-times-circle fa-5x text-danger mb-3"></i>
+        <h1 class="mb-3">Payment Failed</h1>
+        <p class="lead mb-4">We could not complete payment for order #{{ order.id }}.</p>
+        <p class="mb-4">You can return to checkout and try again, or choose Cash on Delivery instead.</p>
+        <div class="d-grid gap-2 col-lg-6 mx-auto">
+            <a href="{% url 'checkout' %}" class="btn btn-primary">Try Again</a>
+            <a href="{% url 'profile' %}?tab=orders" class="btn btn-outline-secondary">View Your Orders</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

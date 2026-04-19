@@ -12,6 +12,11 @@ CITY_CHOICES = [
     ('Outside Chattogram', 'Outside Chattogram'),
 ]
 
+PAYMENT_METHOD_CHOICES = [
+    ('cod', 'Cash on Delivery'),
+    ('sslcommerz', 'Pay Online with SSLCommerz'),
+]
+
 class RegistrationForm(UserCreationForm):
     class Meta:
         model = User 
@@ -31,6 +36,12 @@ class CheckoutForm(forms.ModelForm):
     city = forms.ChoiceField(
         choices=CITY_CHOICES,
         required=True,
+    )
+    payment_method = forms.ChoiceField(
+        choices=PAYMENT_METHOD_CHOICES,
+        required=True,
+        widget=forms.RadioSelect,
+        initial='cod',
     )
 
     def __init__(self, *args, **kwargs):

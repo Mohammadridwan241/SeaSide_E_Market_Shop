@@ -121,10 +121,13 @@
         padding: 1.25rem;
         margin-bottom: 1rem;
         transition: all 0.2s;
+        cursor: pointer;
     }
 
-    .payment-method:hover {
+    .payment-method:hover,
+    .payment-method.selected {
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(106, 17, 203, 0.12);
     }
 
     .payment-method-label {
@@ -267,7 +270,6 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
-                                {{ form.first_name.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                     <input type="text" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
@@ -275,13 +277,12 @@
                                            value="{{ form.first_name.value|default:'' }}" required>
                                 </div>
                                 {% if form.first_name.errors %}
-                                <div class="invalid-feedback">{{ form.first_name.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.first_name.errors|join:", " }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-md-6">
                                 <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                                {{ form.last_name.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                     <input type="text" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
@@ -289,13 +290,12 @@
                                            value="{{ form.last_name.value|default:'' }}" required>
                                 </div>
                                 {% if form.last_name.errors %}
-                                <div class="invalid-feedback">{{ form.last_name.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.last_name.errors|join:", " }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-12">
                                 <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                                {{ form.email.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                     <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
@@ -303,13 +303,12 @@
                                            value="{{ form.email.value|default:'' }}" required>
                                 </div>
                                 {% if form.email.errors %}
-                                <div class="invalid-feedback">{{ form.email.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.email.errors|join:", " }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-12">
                                 <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number</label>
-                                {{ form.phone.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-phone"></i></span>
                                     <input type="tel" class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
@@ -317,7 +316,7 @@
                                            value="{{ form.phone.value|default:'' }}" required>
                                 </div>
                                 {% if form.phone.errors %}
-                                <div class="invalid-feedback">{{ form.phone.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.phone.errors|join:", " }}</div>
                                 {% endif %}
                                 <div class="form-text">
                                     We'll send your order confirmation and updates to this phone number.
@@ -326,7 +325,6 @@
 
                             <div class="col-12">
                                 <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
-                                {{ form.address.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-home"></i></span>
                                     <input type="text" class="form-control {% if form.address.errors %}is-invalid{% endif %}"
@@ -334,13 +332,12 @@
                                            value="{{ form.address.value|default:'' }}" required>
                                 </div>
                                 {% if form.address.errors %}
-                                <div class="invalid-feedback">{{ form.address.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.address.errors|join:", " }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-md-6">
                                 <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
-                                {{ form.city.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-city"></i></span>
                                     <select class="form-control {% if form.city.errors %}is-invalid{% endif %}"
@@ -353,13 +350,12 @@
                                     </select>
                                 </div>
                                 {% if form.city.errors %}
-                                <div class="invalid-feedback">{{ form.city.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.city.errors|join:", " }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-md-6">
                                 <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code</label>
-                                {{ form.postal_code.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
                                     <input type="text" class="form-control {% if form.postal_code.errors %}is-invalid{% endif %}"
@@ -367,20 +363,19 @@
                                            value="{{ form.postal_code.value|default:'' }}" required>
                                 </div>
                                 {% if form.postal_code.errors %}
-                                <div class="invalid-feedback">{{ form.postal_code.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.postal_code.errors|join:", " }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-12">
                                 <label for="{{ form.note.id_for_label }}" class="form-label">Order Notes (optional)</label>
-                                {{ form.note.errors }}
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
                                     <textarea class="form-control {% if form.note.errors %}is-invalid{% endif %}"
                                               id="{{ form.note.id_for_label }}" name="{{ form.note.html_name }}" rows="3">{{ form.note.value|default:'' }}</textarea>
                                 </div>
                                 {% if form.note.errors %}
-                                <div class="invalid-feedback">{{ form.note.errors }}</div>
+                                <div class="invalid-feedback d-block">{{ form.note.errors|join:", " }}</div>
                                 {% endif %}
                                 <div class="form-text">
                                     Add any special instructions or delivery notes here.
@@ -398,18 +393,43 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="payment-method">
-                        <div class="payment-method-label">
-                            <i class="fas fa-money-bill-wave payment-method-icon"></i> Cash on Delivery
+                    {% if form.payment_method.errors %}
+                    <div class="alert alert-danger py-2">{{ form.payment_method.errors|join:", " }}</div>
+                    {% endif %}
+
+                    {% for value, label in form.fields.payment_method.choices %}
+                    <label class="payment-method d-block {% if selected_payment_method == value %}selected{% endif %}">
+                        <div class="d-flex align-items-start">
+                            <input type="radio"
+                                   name="{{ form.payment_method.html_name }}"
+                                   value="{{ value }}"
+                                   form="checkout-form"
+                                   class="form-check-input mt-1 me-3"
+                                   {% if selected_payment_method == value %}checked{% endif %}>
+                            <div>
+                                <div class="payment-method-label">
+                                    <i class="fas {% if value == 'cod' %}fa-money-bill-wave{% else %}fa-credit-card{% endif %} payment-method-icon"></i> {{ label }}
+                                </div>
+                                <div class="payment-method-description">
+                                    {% if value == 'cod' %}
+                                    Place your order now and pay in cash when the product is delivered to your address.
+                                    {% else %}
+                                    You will be redirected to SSLCommerz to complete your online payment securely.
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
-                        <div class="payment-method-description">
-                            Place your order now and pay in cash when the product is delivered to your address.
-                        </div>
-                    </div>
+                    </label>
+                    {% endfor %}
 
                     <div class="d-grid gap-3 mt-4">
                         <button type="submit" form="checkout-form" class="btn checkout-btn">
-                            <i class="fas fa-check-circle me-2"></i> Place Order
+                            <i class="fas fa-check-circle me-2"></i>
+                            {% if selected_payment_method == 'sslcommerz' %}
+                            Proceed to SSLCommerz
+                            {% else %}
+                            Place Order
+                            {% endif %}
                         </button>
                         <a href="{% url 'cart_detail' %}" class="btn btn-outline-secondary back-btn">
                             <i class="fas fa-arrow-left me-2"></i> Back to Cart
@@ -431,8 +451,7 @@
                     <div class="summary-item d-flex">
                         <div class="flex-shrink-0">
                             {% if item.product.image %}
-                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
-                                 class="summary-item-image">
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="summary-item-image">
                             {% else %}
                             <div class="bg-light text-center summary-item-image d-flex justify-content-center align-items-center">
                                 <i class="fas fa-image fa-2x text-muted"></i>
@@ -489,6 +508,8 @@
         const cityInput = document.getElementById("{{ form.city.id_for_label }}");
         const shippingFeeEl = document.getElementById("checkout-shipping-fee");
         const totalEl = document.getElementById("checkout-total");
+        const paymentInputs = document.querySelectorAll('input[name="{{ form.payment_method.html_name }}"]');
+        const submitButton = document.querySelector('button[form="checkout-form"]');
 
         if (!cityInput || !shippingFeeEl || !totalEl) {
             return;
@@ -526,8 +547,30 @@
             totalEl.textContent = formatAmount(subtotal + shippingFee);
         }
 
+        function updatePaymentSelection() {
+            paymentInputs.forEach((input) => {
+                const wrapper = input.closest(".payment-method");
+                if (!wrapper) {
+                    return;
+                }
+                wrapper.classList.toggle("selected", input.checked);
+            });
+
+            const selected = document.querySelector('input[name="{{ form.payment_method.html_name }}"]:checked');
+            if (!selected || !submitButton) {
+                return;
+            }
+
+            submitButton.innerHTML = selected.value === "sslcommerz"
+                ? '<i class="fas fa-check-circle me-2"></i> Proceed to SSLCommerz'
+                : '<i class="fas fa-check-circle me-2"></i> Place Order';
+        }
+
         cityInput.addEventListener("change", updateSummary);
+        paymentInputs.forEach((input) => input.addEventListener("change", updatePaymentSelection));
+
         updateSummary();
+        updatePaymentSelection();
     })();
 </script>
 {% endblock %}

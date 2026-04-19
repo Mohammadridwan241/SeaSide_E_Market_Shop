@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Cancelled | SeaSide-E-market{% endblock %}
+
+{% block content %}
+<div class="card text-center py-5 my-5">
+    <div class="card-body">
+        <i class="fas fa-ban fa-5x text-warning mb-3"></i>
+        <h1 class="mb-3">Payment Cancelled</h1>
+        <p class="lead mb-4">You cancelled payment for order #{{ order.id }}.</p>
+        <p class="mb-4">No online payment was captured. You can place the order again whenever you are ready.</p>
+        <div class="d-grid gap-2 col-lg-6 mx-auto">
+            <a href="{% url 'checkout' %}" class="btn btn-primary">Return to Checkout</a>
+            <a href="{% url 'profile' %}?tab=orders" class="btn btn-outline-secondary">View Your Orders</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

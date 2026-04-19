@@ -446,7 +446,7 @@
                                         <td class="order-id">#{{ order.id }}</td>
                                         <td>{{ order.created_at|date:"M d, Y" }}</td>
                                         <td>
-                                            <span class="status-badge badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'shipped' %}bg-info{% elif order.status == 'processing' %}bg-primary{% elif order.status == 'confirm' %}bg-dark{% elif order.status == 'canceled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            <span class="status-badge badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'shipped' %}bg-info{% elif order.status == 'processing' %}bg-primary{% elif order.status == 'confirm' %}bg-dark{% elif order.status == 'failed' or order.status == 'canceled' %}bg-danger{% else %}bg-secondary{% endif %}">
                                                 {{ order.get_status_display }}
                                             </span>
                                         </td>
@@ -502,7 +502,7 @@
                         <div class="col-md-3 col-6">
                             <div class="order-info-label">Status</div>
                             <div class="order-info-value">
-                                <span class="status-badge badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'shipped' %}bg-info{% elif order.status == 'processing' %}bg-primary{% elif order.status == 'confirm' %}bg-dark{% elif order.status == 'canceled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                <span class="status-badge badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'shipped' %}bg-info{% elif order.status == 'processing' %}bg-primary{% elif order.status == 'confirm' %}bg-dark{% elif order.status == 'failed' or order.status == 'canceled' %}bg-danger{% else %}bg-secondary{% endif %}">
                                     {{ order.get_status_display }}
                                 </span>
                             </div>
@@ -516,11 +516,9 @@
                         <div class="col-md-3 col-6">
                             <div class="order-info-label">Payment Status</div>
                             <div class="order-info-value">
-                                {% if order.paid %}
-                                <span class="badge bg-success">Paid</span>
-                                {% else %}
-                                <span class="badge bg-warning text-dark">Pending</span>
-                                {% endif %}
+                                <span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'failed' or order.payment_status == 'canceled' %}bg-danger{% elif order.payment_status == 'cod' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
                             </div>
                         </div>
                         <div class="col-md-3 col-6">
