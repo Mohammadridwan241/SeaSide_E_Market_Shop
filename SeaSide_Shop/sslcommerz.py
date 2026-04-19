@@ -30,8 +30,16 @@ def _get_session():
 
 
 def _ensure_credentials():
-    if not settings.SSLCOMMERZ_STORE_ID or not settings.SSLCOMMERZ_STORE_PASSWORD:
-        raise SSLCommerzError('SSLCommerz credentials are not configured.')
+    missing = []
+    if not settings.SSLCOMMERZ_STORE_ID:
+        missing.append('SSLCOMMERZ_STORE_ID')
+    if not settings.SSLCOMMERZ_STORE_PASSWORD:
+        missing.append('SSLCOMMERZ_STORE_PASSWORD')
+
+    if missing:
+        raise SSLCommerzError(
+            'SSLCommerz credentials are not configured. Missing: ' + ', '.join(missing)
+        )
 
 
 def create_payment_session(request, order):

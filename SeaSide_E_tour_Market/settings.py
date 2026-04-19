@@ -187,6 +187,14 @@ EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 # SSLCommerz
-SSLCOMMERZ_STORE_ID = env('SSLCOMMERZ_STORE_ID', default='')
-SSLCOMMERZ_STORE_PASSWORD = env('SSLCOMMERZ_STORE_PASSWORD', default='')
+SSLCOMMERZ_STORE_ID = (
+    env('SSLCOMMERZ_STORE_ID', default='') or
+    env('SSL_STORE_ID', default='') or
+    env('STORE_ID', default='')
+)
+SSLCOMMERZ_STORE_PASSWORD = (
+    env('SSLCOMMERZ_STORE_PASSWORD', default='') or
+    env('SSL_STORE_PASSWORD', default='') or
+    env('STORE_PASSWORD', default='')
+)
 SSLCOMMERZ_SANDBOX = env.bool('SSLCOMMERZ_SANDBOX', default=True)
