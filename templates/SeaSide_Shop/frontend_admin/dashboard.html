@@ -72,6 +72,9 @@
         <a href="{% url 'frontend_admin_update_products' %}" class="btn btn-outline-primary">
             <i class="fas fa-pen-to-square me-2"></i> Update Product
         </a>
+        <a href="{% url 'frontend_admin_remove_products' %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash me-2"></i> Remove Product
+        </a>
     </div>
 </div>
 
@@ -249,7 +252,6 @@
                         <th>Price</th>
                         <th>Stock</th>
                         <th>Status</th>
-                        <th>Remove</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -280,22 +282,10 @@
                             <span class="badge bg-secondary">Removed</span>
                             {% endif %}
                         </td>
-                        <td>
-                            {% if product.available %}
-                            <form method="post" action="{% url 'frontend_admin_remove_product' product.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="fas fa-trash me-1"></i> Remove
-                                </button>
-                            </form>
-                            {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Removed</button>
-                            {% endif %}
-                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="5" class="text-center py-5">
                             <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                             <p class="mb-0 text-muted">No products found.</p>
                         </td>

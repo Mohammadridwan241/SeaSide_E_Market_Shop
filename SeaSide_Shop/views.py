@@ -802,6 +802,12 @@ def frontend_admin_update_products_page(request):
 
 
 @frontend_admin_required
+def frontend_admin_remove_products_page(request):
+    products = Product.objects.select_related('category').order_by('-created_at')
+    return render(request, 'SeaSide_Shop/frontend_admin/remove_products.html', {'products': products})
+
+
+@frontend_admin_required
 def frontend_admin_remove_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
@@ -812,6 +818,9 @@ def frontend_admin_remove_product(request, product_id):
             messages.success(request, f'{product.name} has been removed from the store.')
         else:
             messages.info(request, f'{product.name} is already removed from the store.')
+
+    if request.POST.get('next') == 'remove_products':
+        return redirect('frontend_admin_remove_products')
 
     return redirect('frontend_admin_dashboard')
 
