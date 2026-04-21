@@ -65,9 +65,14 @@
         <h1 class="admin-title">Admin Panel</h1>
         <p class="text-muted mb-0">Manage orders and add,update, remove  products from the website interface.</p>
     </div>
-    <a href="{% url 'frontend_admin_add_product' %}" class="btn btn-primary">
-        <i class="fas fa-plus me-2"></i> Add Product
-    </a>
+    <div class="d-flex flex-column gap-2">
+        <a href="{% url 'frontend_admin_add_product' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> Add Product
+        </a>
+        <a href="{% url 'frontend_admin_update_products' %}" class="btn btn-outline-primary">
+            <i class="fas fa-pen-to-square me-2"></i> Update Product
+        </a>
+    </div>
 </div>
 
 <div class="row g-4 mb-4">
@@ -244,7 +249,6 @@
                         <th>Price</th>
                         <th>Stock</th>
                         <th>Status</th>
-                        <th>Update Product</th>
                         <th>Remove</th>
                     </tr>
                 </thead>
@@ -277,24 +281,6 @@
                             {% endif %}
                         </td>
                         <td>
-                            <form method="post" action="{% url 'frontend_admin_update_product' product.id %}" class="row g-2 align-items-end">
-                                {% csrf_token %}
-                                <div class="col-12">
-                                    <label class="small text-muted mb-1">Price</label>
-                                    <input type="number" name="price" value="{{ product.price }}" min="0.01" step="0.01" class="form-control form-control-sm" required>
-                                </div>
-                                <div class="col-12">
-                                    <label class="small text-muted mb-1">Stock</label>
-                                    <input type="number" name="stock" value="{{ product.stock }}" min="0" step="1" class="form-control form-control-sm" required>
-                                </div>
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-sm btn-primary w-100">
-                                        <i class="fas fa-save me-1"></i> Update
-                                    </button>
-                                </div>
-                            </form>
-                        </td>
-                        <td>
                             {% if product.available %}
                             <form method="post" action="{% url 'frontend_admin_remove_product' product.id %}">
                                 {% csrf_token %}
@@ -309,7 +295,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="6" class="text-center py-5">
                             <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                             <p class="mb-0 text-muted">No products found.</p>
                         </td>

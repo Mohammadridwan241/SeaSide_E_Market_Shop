@@ -796,6 +796,12 @@ def frontend_admin_add_product(request):
 
 
 @frontend_admin_required
+def frontend_admin_update_products_page(request):
+    products = Product.objects.select_related('category').order_by('-created_at')
+    return render(request, 'SeaSide_Shop/frontend_admin/update_products.html', {'products': products})
+
+
+@frontend_admin_required
 def frontend_admin_remove_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
@@ -829,5 +835,8 @@ def frontend_admin_update_product(request, product_id):
                 for error in errors
             )
             messages.error(request, error_text or 'Product could not be updated.')
+
+    if request.POST.get('next') == 'update_products':
+        return redirect('frontend_admin_update_products')
 
     return redirect('frontend_admin_dashboard')
