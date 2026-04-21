@@ -17,6 +17,7 @@ from .forms import (
     PasswordResetRequestForm,
     PasswordResetCodeForm,
     ProductForm,
+    ProductUpdateForm,
     FrontendOrderStatusForm,
 )
 from .models import (
@@ -793,5 +794,28 @@ def frontend_admin_remove_product(request, product_id):
             messages.success(request, f'{product.name} has been removed from the store.')
         else:
             messages.info(request, f'{product.name} is already removed from the store.')
+
+    return redirect('frontend_admin_dashboard')
+
+
+@frontend_admin_required
+def frontend_admin_update_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    if request.method == 'POST':
+        form = ProductUpdateForm(request.POST, instance=product)
+        if form.is_valid():
+            updated_product = form.save()
+            messages.success(
+                request,
+                f'{updated_product.name} updated successfully. Price: ৳{updated_product.price}, Stock: {updated_product.stock}.'
+            )
+        else:
+            error_text = ' '.join(
+                error
+                for errors in form.errors.values()
+                for error in errors
+            )
+            messages.error(request, error_text or 'Product could not be updated.')
 
     return redirect('frontend_admin_dashboard')

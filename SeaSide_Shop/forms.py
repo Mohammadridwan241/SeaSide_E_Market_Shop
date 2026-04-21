@@ -106,6 +106,28 @@ class ProductForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-control'})
 
 
+class ProductUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['price', 'stock']
+        widgets = {
+            'price': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'min': '0.01', 'step': '0.01'}),
+            'stock': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'min': '0', 'step': '1'}),
+        }
+
+    def clean_price(self):
+        price = self.cleaned_data['price']
+        if price <= 0:
+            raise forms.ValidationError('Price must be greater than 0.')
+        return price
+
+    def clean_stock(self):
+        stock = self.cleaned_data['stock']
+        if stock < 0:
+            raise forms.ValidationError('Stock cannot be negative.')
+        return stock
+
+
 class FrontendOrderStatusForm(forms.ModelForm):
     class Meta:
         model = Order
