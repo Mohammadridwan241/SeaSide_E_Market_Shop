@@ -224,6 +224,11 @@
                         <li class="nav-item {% if '/products/' in request.path %}active{% endif %}">
                             <a class="nav-link" href="{% url 'product_list' %}">Products</a>
                         </li>
+                        {% if user.is_staff or user.is_superuser %}
+                        <li class="nav-item {% if '/store-admin/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'frontend_admin_dashboard' %}">Admin Panel</a>
+                        </li>
+                        {% endif %}
                     </ul>
                     
                     <form class="d-flex search-box me-3" action="{% url 'product_list' %}" method="get">
@@ -253,6 +258,11 @@
                                     <li><a class="dropdown-item" href="{% url 'profile' %}">
                                         <i class="fas fa-user me-2"></i> My Profile
                                     </a></li>
+                                    {% if user.is_staff or user.is_superuser %}
+                                    <li><a class="dropdown-item" href="{% url 'frontend_admin_dashboard' %}">
+                                        <i class="fas fa-gauge me-2"></i> Admin Panel
+                                    </a></li>
+                                    {% endif %}
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{% url 'logout' %}">
                                         <i class="fas fa-sign-out-alt me-2"></i> Logout

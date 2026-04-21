@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Frontend Admin Panel | SeaSide-E-market{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .admin-title {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card,
+    .admin-card {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+        height: 100%;
+    }
+
+    .stat-value {
+        color: var(--primary-color);
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    .stat-label {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .order-products {
+        padding-left: 1rem;
+        margin-bottom: 0;
+    }
+
+    .order-products li {
+        margin-bottom: 0.25rem;
+    }
+
+    .admin-table th {
+        white-space: nowrap;
+    }
+
+    .admin-table td {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <h1 class="admin-title">Frontend Admin Panel</h1>
+        <p class="text-muted mb-0">Manage orders and add products from the website interface.</p>
+    </div>
+    <a href="{% url 'frontend_admin_add_product' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Add Product
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-white">
+            <div class="stat-value">{{ total_orders }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-white">
+            <div class="stat-value">{{ pending_orders }}</div>
+            <div class="stat-label">Pending Orders</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-white">
+            <div class="stat-value">{{ paid_orders }}</div>
+            <div class="stat-label">Paid Orders</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-white">
+            <div class="stat-value">{{ total_products }}</div>
+            <div class="stat-label">Products</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Order Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Payment Status</label>
+                <select name="payment_status" class="form-select">
+                    <option value="">All payment statuses</option>
+                    {% for value, label in payment_status_choices %}
+                    <option value="{{ value }}" {% if selected_payment_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-2"></i> Filter
+                </button>
+                <a href="{% url 'frontend_admin_dashboard' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="admin-card card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-receipt me-2 text-primary"></i> All Orders</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover admin-table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Products</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Order Status</th>
+                        <th>Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            <strong>#{{ order.id }}</strong><br>
+                            <span class="small text-muted">{{ order.created_at|date:"M d, Y h:i A" }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ order.first_name }} {{ order.last_name }}</strong><br>
+                            <span class="small text-muted">{{ order.email }}</span>
+                        </td>
+                        <td>{{ order.phone }}</td>
+                        <td>
+                            <ul class="order-products">
+                                {% for item in order.order_items.all %}
+                                <li>{{ item.product.name }} x {{ item.quantity }} - ৳{{ item.get_cost }}</li>
+                                {% endfor %}
+                                {% if order.shipping_fee %}
+                                <li>Shipping Fee - ৳{{ order.shipping_fee }}</li>
+                                {% endif %}
+                            </ul>
+                        </td>
+                        <td class="fw-bold">৳{{ order.get_total_cost }}</td>
+                        <td>
+                            <span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'failed' or order.payment_status == 'canceled' %}bg-danger{% elif order.payment_status == 'cod' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                            <div class="small text-muted mt-1">{{ order.get_payment_method_display }}</div>
+                        </td>
+                        <td>
+                            <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'shipped' %}bg-info{% elif order.status == 'processing' %}bg-primary{% elif order.status == 'confirm' %}bg-dark{% elif order.status == 'failed' or order.status == 'canceled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'frontend_admin_update_order_status' order.id %}" class="d-flex gap-2">
+                                {% csrf_token %}
+                                <select name="status" class="form-select form-select-sm">
+                                    {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="mb-0 text-muted">No orders found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

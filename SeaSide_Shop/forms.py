@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User 
 from django.contrib.auth.password_validation import validate_password
 
-from .models import Rating, Order
+from .models import Product, Rating, Order
 
 
 CITY_CHOICES = [
@@ -87,3 +87,29 @@ class PasswordResetCodeForm(forms.Form):
             validate_password(password1)
 
         return cleaned_data
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'category', 'description', 'price', 'stock', 'available', 'image']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name == 'available':
+                field.widget.attrs.update({'class': 'form-check-input'})
+            else:
+                field.widget.attrs.update({'class': 'form-control'})
+
+
+class FrontendOrderStatusForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+        }

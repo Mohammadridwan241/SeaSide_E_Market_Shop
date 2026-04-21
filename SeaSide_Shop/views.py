@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
+from django.utils.text import slugify
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms import (
@@ -14,6 +16,8 @@ from .forms import (
     CheckoutForm,
     PasswordResetRequestForm,
     PasswordResetCodeForm,
+    ProductForm,
+    FrontendOrderStatusForm,
 )
 from .models import (
     Category,
@@ -29,13 +33,19 @@ from .models import (
     get_shipping_fee_for_city,
 )
 from django.db.models import Q, Min, Max, Avg
-from django.contrib.auth.decorators import login_required
 from .sslcommerz import (
     SSLCommerzError,
     create_payment_session,
     send_order_confirmation_email,
     validate_payment,
 )
+
+
+def is_frontend_admin(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+frontend_admin_required = user_passes_test(is_frontend_admin, login_url='login')
 
 
 def _build_transaction_id(order):
@@ -162,6 +172,18 @@ def _mark_order_payment_success(order, validation_data=None, clear_cart=False):
 
     if not was_paid:
         send_order_confirmation_email(order)
+
+
+def _unique_product_slug(name):
+    base_slug = slugify(name) or 'product'
+    slug = base_slug
+    counter = 1
+
+    while Product.objects.filter(slug=slug).exists():
+        counter += 1
+        slug = f'{base_slug}-{counter}'
+
+    return slug
 # Create your views here.
 
 # Manual User Authentication
@@ -656,3 +678,82 @@ def profile(request):
         'total_spent' : total_spent,
         'order_history_active' : order_history_active
     })
+
+
+@frontend_admin_required
+def frontend_admin_dashboard(request):
+    orders = Order.objects.select_related('user').prefetch_related(
+        'order_items__product',
+        'order_items__product__category',
+    ).order_by('-created_at')
+
+    status_filter = request.GET.get('status', '')
+    payment_filter = request.GET.get('payment_status', '')
+
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    if payment_filter:
+        orders = orders.filter(payment_status=payment_filter)
+
+    stats_orders = Order.objects.all()
+    context = {
+        'orders': orders,
+        'status_choices': Order.STATUS,
+        'payment_status_choices': Order.PAYMENT_STATUS,
+        'selected_status': status_filter,
+        'selected_payment_status': payment_filter,
+        'total_orders': stats_orders.count(),
+        'pending_orders': stats_orders.filter(status='pending').count(),
+        'paid_orders': stats_orders.filter(payment_status='paid').count(),
+        'total_products': Product.objects.count(),
+    }
+    return render(request, 'SeaSide_Shop/frontend_admin/dashboard.html', context)
+
+
+@frontend_admin_required
+def frontend_admin_update_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.method == 'POST':
+        old_status = order.status
+        form = FrontendOrderStatusForm(request.POST, instance=order)
+        if form.is_valid():
+            updated_order = form.save(commit=False)
+
+            if updated_order.status == 'canceled':
+                _restore_order_stock(updated_order)
+                updated_order.payment_status = 'canceled'
+                updated_order.paid = False
+            elif updated_order.status == 'failed':
+                updated_order.payment_status = 'failed'
+                updated_order.paid = False
+            elif updated_order.status == 'delivered':
+                updated_order.payment_status = 'paid'
+                updated_order.paid = True
+
+            updated_order.save()
+
+            if old_status != updated_order.status:
+                messages.success(request, f'Order #{updated_order.id} status updated to {updated_order.get_status_display()}.')
+            else:
+                messages.info(request, f'Order #{updated_order.id} already has that status.')
+        else:
+            messages.error(request, 'Order status could not be updated.')
+
+    return redirect('frontend_admin_dashboard')
+
+
+@frontend_admin_required
+def frontend_admin_add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.slug = _unique_product_slug(product.name)
+            product.save()
+            messages.success(request, f'{product.name} has been added successfully.')
+            return redirect('frontend_admin_dashboard')
+    else:
+        form = ProductForm()
+
+    return render(request, 'SeaSide_Shop/frontend_admin/add_product.html', {'form': form})
