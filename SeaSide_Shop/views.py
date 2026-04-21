@@ -686,6 +686,7 @@ def frontend_admin_dashboard(request):
         'order_items__product',
         'order_items__product__category',
     ).order_by('-created_at')
+    products = Product.objects.select_related('category').order_by('-created_at')
 
     status_filter = request.GET.get('status', '')
     payment_filter = request.GET.get('payment_status', '')
@@ -705,7 +706,9 @@ def frontend_admin_dashboard(request):
         'total_orders': stats_orders.count(),
         'pending_orders': stats_orders.filter(status='pending').count(),
         'paid_orders': stats_orders.filter(Q(paid=True) | Q(payment_status='paid')).distinct().count(),
-        'total_products': Product.objects.count(),
+        'total_products': Product.objects.filter(available=True).count(),
+        'removed_products': Product.objects.filter(available=False).count(),
+        'products': products,
     }
     return render(request, 'SeaSide_Shop/frontend_admin/dashboard.html', context)
 
@@ -753,7 +756,22 @@ def frontend_admin_add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
+            product_name = form.cleaned_data['name'].strip()
+            existing_product = Product.objects.filter(name__iexact=product_name).first()
+
+            if existing_product:
+                added_stock = form.cleaned_data['stock']
+                existing_product.stock += added_stock
+                existing_product.available = True
+                existing_product.save(update_fields=['stock', 'available'])
+                messages.success(
+                    request,
+                    f'{existing_product.name} already exists. Stock increased by {added_stock}. New stock: {existing_product.stock}.'
+                )
+                return redirect('frontend_admin_dashboard')
+
             product = form.save(commit=False)
+            product.name = product_name
             product.slug = _unique_product_slug(product.name)
             product.save()
             messages.success(request, f'{product.name} has been added successfully.')
@@ -762,3 +780,18 @@ def frontend_admin_add_product(request):
         form = ProductForm()
 
     return render(request, 'SeaSide_Shop/frontend_admin/add_product.html', {'form': form})
+
+
+@frontend_admin_required
+def frontend_admin_remove_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    if request.method == 'POST':
+        if product.available:
+            product.available = False
+            product.save(update_fields=['available'])
+            messages.success(request, f'{product.name} has been removed from the store.')
+        else:
+            messages.info(request, f'{product.name} is already removed from the store.')
+
+    return redirect('frontend_admin_dashboard')
