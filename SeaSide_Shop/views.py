@@ -704,7 +704,7 @@ def frontend_admin_dashboard(request):
         'selected_payment_status': payment_filter,
         'total_orders': stats_orders.count(),
         'pending_orders': stats_orders.filter(status='pending').count(),
-        'paid_orders': stats_orders.filter(payment_status='paid').count(),
+        'paid_orders': stats_orders.filter(Q(paid=True) | Q(payment_status='paid')).distinct().count(),
         'total_products': Product.objects.count(),
     }
     return render(request, 'SeaSide_Shop/frontend_admin/dashboard.html', context)
@@ -716,6 +716,7 @@ def frontend_admin_update_order_status(request, order_id):
 
     if request.method == 'POST':
         old_status = order.status
+        old_payment_status = order.payment_status
         form = FrontendOrderStatusForm(request.POST, instance=order)
         if form.is_valid():
             updated_order = form.save(commit=False)
@@ -730,13 +731,17 @@ def frontend_admin_update_order_status(request, order_id):
             elif updated_order.status == 'delivered':
                 updated_order.payment_status = 'paid'
                 updated_order.paid = True
+            elif updated_order.payment_status == 'paid':
+                updated_order.paid = True
+            elif updated_order.payment_status in ['cod', 'pending', 'failed', 'canceled']:
+                updated_order.paid = False
 
             updated_order.save()
 
-            if old_status != updated_order.status:
-                messages.success(request, f'Order #{updated_order.id} status updated to {updated_order.get_status_display()}.')
+            if old_status != updated_order.status or old_payment_status != updated_order.payment_status:
+                messages.success(request, f'Order #{updated_order.id} updated successfully.')
             else:
-                messages.info(request, f'Order #{updated_order.id} already has that status.')
+                messages.info(request, f'Order #{updated_order.id} already has those statuses.')
         else:
             messages.error(request, 'Order status could not be updated.')
 

@@ -109,7 +109,8 @@ class ProductForm(forms.ModelForm):
 class FrontendOrderStatusForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['status']
+        fields = ['status', 'payment_status']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'payment_status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
         }

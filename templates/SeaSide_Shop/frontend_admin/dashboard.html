@@ -142,7 +142,7 @@
                         <th>Phone</th>
                         <th>Products</th>
                         <th>Total</th>
-                        <th>Payment</th>
+                        <th>Payment Status</th>
                         <th>Order Status</th>
                         <th>Update</th>
                     </tr>
@@ -171,8 +171,8 @@
                         </td>
                         <td class="fw-bold">৳{{ order.get_total_cost }}</td>
                         <td>
-                            <span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'failed' or order.payment_status == 'canceled' %}bg-danger{% elif order.payment_status == 'cod' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
-                                {{ order.get_payment_status_display }}
+                            <span class="badge {% if order.payment_status == 'paid' or order.paid %}bg-success{% elif order.payment_status == 'failed' or order.payment_status == 'canceled' %}bg-danger{% elif order.payment_status == 'cod' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                                {% if order.paid and order.payment_status != 'paid' %}Paid{% else %}{{ order.get_payment_status_display }}{% endif %}
                             </span>
                             <div class="small text-muted mt-1">{{ order.get_payment_method_display }}</div>
                         </td>
@@ -182,13 +182,24 @@
                             </span>
                         </td>
                         <td>
-                            <form method="post" action="{% url 'frontend_admin_update_order_status' order.id %}" class="d-flex gap-2">
+                            <form method="post" action="{% url 'frontend_admin_update_order_status' order.id %}" class="d-flex flex-column gap-2">
                                 {% csrf_token %}
-                                <select name="status" class="form-select form-select-sm">
-                                    {% for value, label in status_choices %}
-                                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
+                                <div>
+                                    <label class="small text-muted mb-1">Payment</label>
+                                    <select name="payment_status" class="form-select form-select-sm">
+                                        {% for value, label in payment_status_choices %}
+                                        <option value="{{ value }}" {% if order.payment_status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="small text-muted mb-1">Order</label>
+                                    <select name="status" class="form-select form-select-sm">
+                                        {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
                             </form>
                         </td>
