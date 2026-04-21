@@ -753,6 +753,18 @@ def frontend_admin_update_order_status(request, order_id):
 
 
 @frontend_admin_required
+def frontend_admin_print_order(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_related('user').prefetch_related(
+            'order_items__product',
+            'order_items__product__category',
+        ),
+        id=order_id,
+    )
+    return render(request, 'SeaSide_Shop/frontend_admin/print_order.html', {'order': order})
+
+
+@frontend_admin_required
 def frontend_admin_add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)

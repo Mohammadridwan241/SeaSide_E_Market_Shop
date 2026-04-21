@@ -37,6 +37,7 @@ urlpatterns = [
     # frontend admin panel
     path('store-admin/', views.frontend_admin_dashboard, name='frontend_admin_dashboard'),
     path('store-admin/orders/<int:order_id>/status/', views.frontend_admin_update_order_status, name='frontend_admin_update_order_status'),
+    path('store-admin/orders/<int:order_id>/print/', views.frontend_admin_print_order, name='frontend_admin_print_order'),
     path('store-admin/products/add/', views.frontend_admin_add_product, name='frontend_admin_add_product'),
     path('store-admin/products/<int:product_id>/update/', views.frontend_admin_update_product, name='frontend_admin_update_product'),
     path('store-admin/products/<int:product_id>/remove/', views.frontend_admin_remove_product, name='frontend_admin_remove_product'),

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Print Order #{{ order.id }} | SeaSide-E-market{% endblock %}
+
+{% block extra_css %}
+<style>
+    .print-page {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+    }
+
+    .print-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #111;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .print-title {
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-box {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        height: 100%;
+    }
+
+    .info-label {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .print-actions {
+        margin-bottom: 1.5rem;
+    }
+
+    @media print {
+        header,
+        footer,
+        .messages,
+        .print-actions {
+            display: none !important;
+        }
+
+        main.container {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #fff;
+        }
+
+        .print-page {
+            max-width: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="print-page">
+    <div class="print-actions d-flex justify-content-between">
+        <a href="{% url 'frontend_admin_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Admin Panel
+        </a>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i> Print Order
+        </button>
+    </div>
+
+    <div class="print-header">
+        <div>
+            <h1 class="print-title">SeaSide_E_Market</h1>
+            <p class="mb-0 text-muted">Order Details</p>
+        </div>
+        <div class="text-end">
+            <h2 class="fw-bold mb-1">Order #{{ order.id }}</h2>
+            <p class="mb-0">{{ order.created_at|date:"F d, Y h:i A" }}</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="info-box">
+                <h5 class="fw-bold mb-3">Customer Information</h5>
+                <p class="mb-1"><strong>Name:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                <p class="mb-1"><strong>Email:</strong> {{ order.email }}</p>
+                <p class="mb-0"><strong>Phone:</strong> {{ order.phone }}</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+                <h5 class="fw-bold mb-3">Shipping Address</h5>
+                <p class="mb-1">{{ order.address }}</p>
+                <p class="mb-0">{{ order.city }}, {{ order.postal_code }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="info-box">
+                <div class="info-label">Order Status</div>
+                <div class="fw-bold">{{ order.get_status_display }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-box">
+                <div class="info-label">Payment Status</div>
+                <div class="fw-bold">
+                    {% if order.paid and order.payment_status != 'paid' %}Paid{% else %}{{ order.get_payment_status_display }}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-box">
+                <div class="info-label">Payment Method</div>
+                <div class="fw-bold">{{ order.get_payment_method_display }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if order.transaction_id %}
+    <div class="mb-4">
+        <strong>Transaction ID:</strong> {{ order.transaction_id }}
+    </div>
+    {% endif %}
+
+    <h5 class="fw-bold mb-3">Order Items</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-center">Price</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.order_items.all %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong>
+                        {% if item.product.category %}
+                        <div class="small text-muted">{{ item.product.category.name }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">৳{{ item.price }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-end">৳{{ item.get_cost }}</td>
+                </tr>
+                {% endfor %}
+                {% if order.shipping_fee %}
+                <tr>
+                    <td><strong>Shipping Fee</strong></td>
+                    <td class="text-center">৳{{ order.shipping_fee }}</td>
+                    <td class="text-center">1</td>
+                    <td class="text-end">৳{{ order.shipping_fee }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Total</td>
+                    <td class="text-end fw-bold">৳{{ order.get_total_cost }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% if order.note %}
+    <div class="info-box mt-4">
+        <h5 class="fw-bold mb-2">Order Notes</h5>
+        <p class="mb-0">{{ order.note }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
