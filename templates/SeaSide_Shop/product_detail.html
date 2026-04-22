@@ -207,12 +207,18 @@
         </div>
         
         {% if product.stock > 0 %}
+        {% if user.is_staff or user.is_superuser %}
+        <div class="alert alert-secondary mb-4">
+            Admin accounts cannot add products to cart or place orders.
+        </div>
+        {% else %}
         <form action="{% url 'cart_add' product.id %}" method="post" class="mb-4">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="fas fa-shopping-cart me-2"></i> Add to Cart
             </button>
         </form>
+        {% endif %}
         {% endif %}
     </div>
 </div>
@@ -336,10 +342,12 @@
                     <div class="card-footer">
                         <div class="d-grid gap-2">
                             <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                            {% if not user.is_staff and not user.is_superuser %}
                             <form action="{% url 'cart_add' product.id %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-primary w-100">Add to Cart</button>
                             </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

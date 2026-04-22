@@ -49,6 +49,17 @@ def is_frontend_admin(user):
 frontend_admin_required = user_passes_test(is_frontend_admin, login_url='login')
 
 
+def _is_admin_user(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def _redirect_admin_from_shopping(request):
+    if _is_admin_user(request.user):
+        messages.warning(request, 'Admin accounts cannot add products to cart or place orders.')
+        return redirect('frontend_admin_dashboard')
+    return None
+
+
 def _build_transaction_id(order):
     return f'SSLCZ-ORDER-{order.id}-{int(timezone.now().timestamp())}'
 
@@ -425,6 +436,10 @@ def rate_product(request, product_id):
 
 @login_required
 def cart_detail(request):
+    admin_redirect = _redirect_admin_from_shopping(request)
+    if admin_redirect:
+        return admin_redirect
+
     # user er kono cart nai
     # user er cart ache
     try:
@@ -437,6 +452,10 @@ def cart_detail(request):
 # cart add
 @login_required
 def cart_add(request, product_id):
+    admin_redirect = _redirect_admin_from_shopping(request)
+    if admin_redirect:
+        return admin_redirect
+
     product = get_object_or_404(Product, id=product_id)
 
     # User er cart ache kina
@@ -469,6 +488,10 @@ def cart_add(request, product_id):
 # cart item quantity increase/decrease korte parbo
 @login_required
 def cart_update(request, product_id):
+    admin_redirect = _redirect_admin_from_shopping(request)
+    if admin_redirect:
+        return admin_redirect
+
     # cart konta
     # cart er item konta
     # main product jeta cart item hisebe cart e ache
@@ -494,6 +517,10 @@ def cart_update(request, product_id):
 
 @login_required
 def cart_remove(request, product_id):
+    admin_redirect = _redirect_admin_from_shopping(request)
+    if admin_redirect:
+        return admin_redirect
+
     cart = get_object_or_404(Cart, user=request.user)
     product = get_object_or_404(Product, id=product_id)
     cart_item = get_object_or_404(CartItem, cart=cart, product=product)
@@ -515,6 +542,10 @@ def cart_remove(request, product_id):
 # Product --> Cart Item --> Order Item
 @login_required
 def checkout(request):
+    admin_redirect = _redirect_admin_from_shopping(request)
+    if admin_redirect:
+        return admin_redirect
+
     try:
         cart = Cart.objects.get(user=request.user)
         if not cart.items.exists():
