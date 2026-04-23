@@ -164,39 +164,80 @@
         
         /* Footer styling */
         footer {
-            background-color: var(--bg-light);
-            padding: 3rem 0 1.5rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e9ecef;
+            padding: 3.5rem 0 1.5rem;
             margin-top: 5rem;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
         }
-        
-        footer h5 {
-            font-weight: 600;
-            margin-bottom: 1.2rem;
+
+        .footer-brand {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .footer-heading {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .footer-text,
+        .footer-link,
+        .footer-contact {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .footer-link {
+            display: inline-block;
+            text-decoration: none;
+            margin-bottom: 0.55rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
             color: var(--primary-color);
         }
-        
-        footer p {
-            color: var(--text-light);
+
+        .footer-contact {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
         }
-        
+
+        .footer-contact i {
+            color: var(--primary-color);
+            margin-top: 0.2rem;
+            width: 18px;
+        }
+
         .social-icons a {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            background-color: #e9ecef;
+            width: 38px;
+            height: 38px;
+            background-color: #ffffff;
             color: var(--primary-color);
             border-radius: 50%;
-            margin-right: 0.75rem;
+            margin-right: 0.6rem;
             transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
         }
         
         .social-icons a:hover {
             background-color: var(--primary-color);
             color: white;
             transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #e9ecef;
+            margin-top: 2rem;
+            padding-top: 1.25rem;
         }
         
         /* Alert messages */
@@ -315,42 +356,58 @@
     
     <footer>
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>About Us</h5>
-                    <p>We provide high-quality products at affordable prices. Our mission is to make online shopping easy, secure, and enjoyable.</p>
-                </div>
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>Contact</h5>
-                    <p>
-                        <i class="fas fa-envelope me-2 text-primary"></i> contact@emarket.com<br>
-                        <i class="fas fa-phone me-2 text-primary"></i> +880 1234-567890<br>
-                        <i class="fas fa-map-marker-alt me-2 text-primary"></i> 123 SeaSide_Shop, Cox's Bazar
-                    </p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Stay Connected</h5>
-                    <div class="social-icons mb-3">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">SeaSide_E_Market</div>
+                    <p class="footer-text mb-4">Fresh seafood, dried fish, and trusted local products delivered with care across the country.</p>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                     </div>
-                    <p>Subscribe to our newsletter for updates on new arrivals and special offers.</p>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="footer-heading">Shop</h5>
+                    <a href="{% url 'home' %}" class="footer-link">Home</a><br>
+                    <a href="{% url 'product_list' %}" class="footer-link">Products</a><br>
+                    <a href="{% url 'cart_detail' %}" class="footer-link">Cart</a><br>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="footer-link">My Account</a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="footer-link">Login</a>
+                    {% endif %}
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-heading">Customer Care</h5>
+                    <a href="#" class="footer-link">Privacy Policy</a><br>
+                    <a href="#" class="footer-link">Terms of Service</a><br>
+                    <a href="#" class="footer-link">FAQ</a><br>
+                    <a href="#" class="footer-link">Return Policy</a>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-heading">Contact</h5>
+                    <div class="footer-contact">
+                        <i class="fas fa-envelope"></i>
+                        <span>contact@emarket.com</span>
+                    </div>
+                    <div class="footer-contact">
+                        <i class="fas fa-phone"></i>
+                        <span>+880 1234-567890</span>
+                    </div>
+                    <div class="footer-contact">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>123 SeaSide Shop, Cox's Bazar</span>
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div class="row mt-3">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <p class="mb-0">&copy; {% now "Y" %} SeaSide-E-Market. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-0">
-                        <a href="#" class="text-decoration-none me-3 text-muted">Privacy Policy</a>
-                        <a href="#" class="text-decoration-none me-3 text-muted">Terms of Service</a>
-                        <a href="#" class="text-decoration-none text-muted">FAQ</a>
-                    </p>
-                </div>
+
+            <div class="footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2">
+                <p class="footer-text mb-0">&copy; {% now "Y" %} SeaSide-E-Market. All rights reserved.</p>
+                <p class="footer-text mb-0">Secure shopping. Fresh products. Careful delivery.</p>
             </div>
         </div>
     </footer>
