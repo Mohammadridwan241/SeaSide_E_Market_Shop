@@ -89,6 +89,49 @@ class PasswordResetCodeForm(forms.Form):
         return cleaned_data
 
 
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your first name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your last name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your email address',
+            }),
+        }
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data['first_name'].strip()
+        if not first_name:
+            raise forms.ValidationError('First name is required.')
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data['last_name'].strip()
+        if not last_name:
+            raise forms.ValidationError('Last name is required.')
+        return last_name
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+
+        if not email:
+            raise forms.ValidationError('Email address is required.')
+
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('This email address is already in use.')
+
+        return email
+
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product

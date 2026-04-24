@@ -33,6 +33,7 @@ urlpatterns = [
     
     # profile
     path('profile/', views.profile, name="profile"),
+    path('profile/update/', views.profile_update, name='profile_update'),
 
     # frontend admin panel
     path('store-admin/', views.frontend_admin_dashboard, name='frontend_admin_dashboard'),

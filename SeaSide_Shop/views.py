@@ -14,6 +14,7 @@ from .forms import (
     RegistrationForm,
     RatingForm,
     CheckoutForm,
+    ProfileUpdateForm,
     PasswordResetRequestForm,
     PasswordResetCodeForm,
     ProductForm,
@@ -710,6 +711,21 @@ def profile(request):
         'total_spent' : total_spent,
         'order_history_active' : order_history_active
     })
+
+
+@login_required
+def profile_update(request):
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully.')
+            return redirect('profile')
+        messages.error(request, 'Please correct the errors below and try again.')
+    else:
+        form = ProfileUpdateForm(instance=request.user)
+
+    return render(request, 'SeaSide_Shop/profile_update.html', {'form': form})
 
 
 @frontend_admin_required

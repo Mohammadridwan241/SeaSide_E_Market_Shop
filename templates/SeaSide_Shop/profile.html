@@ -339,6 +339,9 @@
                         <a href="{% url 'profile' %}" class="list-group-item list-group-item-action {% if not order_history_active %}active{% endif %}">
                             <i class="fas fa-user"></i> Profile Information
                         </a>
+                        <a href="{% url 'profile_update' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-edit"></i> Edit Profile
+                        </a>
                         <a href="{% url 'profile' %}?tab=orders" class="list-group-item list-group-item-action {% if order_history_active %}active{% endif %}">
                             <i class="fas fa-shopping-bag"></i> Order History
                         </a>
@@ -365,8 +368,11 @@
             <!-- Profile Section -->
             {% if not order_history_active %}
             <div class="content-card card mb-4">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-user-circle"></i> Personal Information</h5>
+                    <a href="{% url 'profile_update' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-pen me-1"></i> Edit Profile
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="row mb-4">
